@@ -1,0 +1,64 @@
+[project]
+name = "taskboard-ai"
+version = "0.1.0"
+description = "taskboard の AI バックエンド（FastAPI + 非同期ジョブワーカー）"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.116.0,<0.117.0",
+    "uvicorn[standard]>=0.35.0,<0.36.0",
+    "pydantic>=2.11.0",
+    "pydantic-settings>=2.10.0",
+    "asyncpg>=0.30.0",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.12.0",
+    "pytest>=8.4.0",
+    "pytest-asyncio>=1.0.0",
+    "httpx>=0.28.0",
+    "testcontainers[postgres]>=4.10.0",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "ANN", # 型ヒント必須
+]
+ignore = [
+    "E501",   # 行長は formatter に任せる
+    "B008",   # FastAPI の Depends() をデフォルト引数で使う
+    "ANN401", # Any は Protocol の汎用シグネチャで許容
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["ANN"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.ruff.lint.flake8-type-checking]
+# pydantic のフィールド型注釈は実行時に評価されるため TYPE_CHECKING に移動させない
+runtime-evaluated-base-classes = ["pydantic.BaseModel", "pydantic_settings.BaseSettings"]
+
+[tool.pytest.ini_options]
+# unit と integration に同名ファイルがあっても衝突しないよう importlib モードにする
+addopts = "--import-mode=importlib"
+pythonpath = ["."]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = [
+    # FastAPI が body モデルを複製する際に出る。alias は機能している（tests/unit/routes で検証）
+    "ignore::pydantic.warnings.UnsupportedFieldAttributeWarning",
+]

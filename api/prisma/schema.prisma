@@ -1,0 +1,73 @@
+// 命名: TypeScript 側は camelCase、DB 側は snake_case（@map / @@map で対応付ける）
+// 生成先: インフラ層の databaseClient 配下（git 管理外。`prisma generate` で再生成する）
+generator client {
+  provider        = "prisma-client"
+  output          = "../src/infrastructures/shared/clients/databaseClient/prisma"
+  moduleFormat    = "esm"
+  // native: ホスト（開発）、linux-musl-*: Docker (node:22-alpine) の arm64 / x64
+  binaryTargets   = ["native", "linux-musl-arm64-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ユーザー。id は認証基盤（Cognito 等）の subject をそのまま使うため自動採番しない
+model User {
+  id           String   @id
+  emailAddress String   @unique @map("email_address")
+  name         String   @map("name")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  memberships Membership[]
+
+  @@map("users")
+}
+
+// テナント（マルチテナントの境界）
+model Tenant {
+  id        String   @id
+  name      String   @map("name")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  memberships Membership[]
+  projects    Project[]
+
+  @@map("tenants")
+}
+
+// 所属。ユーザーとテナントの多対多 + ロール
+model Membership {
+  id        String   @id
+  userId    String   @map("user_id")
+  tenantId  String   @map("tenant_id")
+  role      String   @map("role")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tenantId])
+  @@index([tenantId])
+  @@map("memberships")
+}
+
+// プロジェクト（tenantContext のリソース）。論理削除
+model Project {
+  id          String    @id
+  tenantId    String    @map("tenant_id")
+  name        String    @map("name")
+  description String?   @map("description")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, deletedAt])
+  @@map("projects")
+}

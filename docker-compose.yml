@@ -1,0 +1,106 @@
+# taskboard のローカル環境。
+#   web (3000) → api (8787) / ai (8000)。ai-worker は ai と DB（キュー）を共有する別プロセス。
+#   db は api 用 (taskboard) と ai 用 (taskboard_ai) の 2 データベースを持つ。
+# 各サービスはホストで直接 `make dev-*` しても動く。コンテナはコード変更を volume で拾う。
+services:
+  web:
+    container_name: taskboard-web
+    build:
+      context: ./web
+      target: development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./web:/app
+      - web_node_modules:/app/node_modules
+      - web_next:/app/.next
+    environment:
+      NEXT_PUBLIC_ENV: local
+      # ブラウザから叩くので、コンテナ名ではなく localhost（ホストの公開ポート）を指す
+      NEXT_PUBLIC_CORE_BACKEND_REST_ENDPOINT: http://localhost:8787
+      NEXT_PUBLIC_AI_BACKEND_REST_ENDPOINT: http://localhost:8000
+    depends_on:
+      - api
+      - ai
+
+  api:
+    container_name: taskboard-api
+    build:
+      context: ./api
+      target: development
+    ports:
+      - "8787:8787"
+    volumes:
+      - ./api:/app
+      - api_node_modules:/app/node_modules
+    environment:
+      ENV: local
+      LOG_LEVEL: debug
+      PORT: 8787
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/taskboard
+    depends_on:
+      db:
+        condition: service_healthy
+
+  ai:
+    container_name: taskboard-ai
+    build:
+      context: ./ai
+      target: development
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./ai:/app
+      - ai_venv:/app/.venv
+    environment:
+      ENV: local
+      LOG_LEVEL: DEBUG
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/taskboard_ai
+    depends_on:
+      db:
+        condition: service_healthy
+
+  ai-worker:
+    container_name: taskboard-ai-worker
+    build:
+      context: ./ai
+      dockerfile: Dockerfile.worker
+      target: development
+    volumes:
+      - ./ai:/app
+      - ai_worker_venv:/app/.venv
+    environment:
+      ENV: local
+      LOG_LEVEL: DEBUG
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/taskboard_ai
+    # SIGTERM 後、処理中のジョブを待つ猶予（worker 側の停止処理より長くする）
+    stop_grace_period: 30s
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    container_name: taskboard-db
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: taskboard
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./infra/db/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d taskboard"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+
+volumes:
+  db_data:
+  api_node_modules:
+  web_node_modules:
+  web_next:
+  ai_venv:
+  ai_worker_venv:
