@@ -258,3 +258,11 @@ Web サーバが動いている = ブラウザや `curl` が 8787 に TCP 接続
 4. `import { serve } from "@hono/node-server"` が「同じアドレス空間」の話になるのはなぜか。`curl` が同じことをできないのはなぜか
 5. この教材が Yarn や pnpm ではなく npm な理由を、速さ以外の言葉で述べよ
 6. あとで出る「依存方向」（2-01）と、今の「依存関係」は何が違うか
+
+サーバ = 番号で待ち受ける、OSに届け出たProgram
+npm run dev  = Node Process 
+- > https://localhost:8787 
+port番号 
+Curl or Brouserでアクセス可
+ソケット経由で、バイト列のメモを渡す？
+Hono = リソースまでのルート整備？

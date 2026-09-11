@@ -1,0 +1,23 @@
+# taskboard のローカル開発環境。
+# Track 1 の段階では DB だけをコンテナで動かし、API はホストで `npm run dev`。
+# Track 3-01 で api サービス（多段ビルド）、3-02 で LocalStack と Dockerfile.migration を追加する。
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: taskboard-db
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: taskboard
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d taskboard"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+
+volumes:
+  db-data:

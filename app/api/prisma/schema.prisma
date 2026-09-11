@@ -1,0 +1,58 @@
+// Prisma スキーマ（演習 03）
+//
+// 方針:
+// - TypeScript 側は camelCase、DB 側は snake_case。@map / @@map で対応付ける
+// - 論理削除（deletedAt）を持つテーブルは、「生きている行だけ」を返す view を用意し、
+//   通常のクエリはそちらを使う。削除済みを含めた全件は元テーブルの model から読む
+// - view は Prisma の preview 機能。view モデルは読み取り専用で、index は張れない
+generator client {
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
+  moduleFormat    = "esm"
+  previewFeatures = ["views"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 全件（削除済み含む）。書き込みはこちらに対して行う
+model ProjectRecord {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  tasks Task[]
+
+  @@index([deletedAt])
+  @@map("projects")
+}
+
+// 生きている行だけ（deleted_at IS NULL）。読み取りはこちらを使う
+view Project {
+  id          String   @unique
+  name        String
+  description String?
+  createdAt   DateTime @map("created_at")
+  updatedAt   DateTime @map("updated_at")
+
+  @@map("projects_live")
+}
+
+model Task {
+  id        String   @id @default(uuid())
+  projectId String   @map("project_id")
+  title     String
+  done      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  project ProjectRecord @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@map("tasks")
+}

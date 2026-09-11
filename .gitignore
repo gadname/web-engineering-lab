@@ -1,0 +1,30 @@
+# Node
+node_modules/
+dist/
+coverage/
+test-results/
+*.tsbuildinfo
+.vite/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Prisma generated client
+**/src/generated/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+.terraform.lock.hcl
+
+# DB data (docker volume mount)
+**/db/**/data/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

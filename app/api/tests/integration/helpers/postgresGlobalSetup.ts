@@ -1,0 +1,40 @@
+import { PostgreSqlContainer, type StartedPostgreSqlContainer } from "@testcontainers/postgresql";
+import { execa } from "execa";
+import type { TestProject } from "vitest/node";
+
+/**
+ * 統合テストの globalSetup。
+ *
+ * 1. Testcontainers で使い捨ての PostgreSQL を起動する
+ * 2. `prisma migrate deploy` でマイグレーションを適用する（dev ではなく deploy: 対話なし・schema 変更なし）
+ * 3. 接続 URL を `provide` でテストに渡す
+ *
+ * テストごとに DB を作り直すのではなく、ファイル単位で TRUNCATE する方が速い（各テストの beforeEach を参照）。
+ */
+let container: StartedPostgreSqlContainer | undefined;
+
+declare module "vitest" {
+	export interface ProvidedContext {
+		databaseUrl: string;
+	}
+}
+
+export async function setup(project: TestProject): Promise<void> {
+	container = await new PostgreSqlContainer("postgres:16-alpine")
+		.withDatabase("taskboard")
+		.withUsername("postgres")
+		.withPassword("postgres")
+		.start();
+
+	const databaseUrl = container.getConnectionUri();
+	await execa("npx", ["prisma", "migrate", "deploy"], {
+		env: { ...process.env, DATABASE_URL: databaseUrl },
+		stdio: "inherit",
+	});
+
+	project.provide("databaseUrl", databaseUrl);
+}
+
+export async function teardown(): Promise<void> {
+	await container?.stop();
+}

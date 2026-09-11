@@ -1,0 +1,381 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "taskboard API",
+    "version": "0.1.0"
+  },
+  "components": {
+    "schemas": {
+      "ErrorResponse.error": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "path",
+                "message"
+              ]
+            }
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorResponse.error"
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "Project.id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "Project.name": {
+        "type": "string"
+      },
+      "Project.description": {
+        "type": "string",
+        "nullable": true
+      },
+      "Project.createdAt": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "Project.updatedAt": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "Project": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Project.id"
+          },
+          "name": {
+            "$ref": "#/components/schemas/Project.name"
+          },
+          "description": {
+            "$ref": "#/components/schemas/Project.description"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/Project.createdAt"
+          },
+          "updatedAt": {
+            "$ref": "#/components/schemas/Project.updatedAt"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "ProjectList.projects": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Project"
+        }
+      },
+      "ProjectList": {
+        "type": "object",
+        "properties": {
+          "projects": {
+            "$ref": "#/components/schemas/ProjectList.projects"
+          }
+        },
+        "required": [
+          "projects"
+        ]
+      },
+      "CreateProjectBody.name": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100,
+        "description": "プロジェクト名（1〜100 文字）"
+      },
+      "CreateProjectBody.description": {
+        "type": "string",
+        "nullable": true,
+        "maxLength": 1000,
+        "description": "省略時は null"
+      },
+      "CreateProjectBody": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "$ref": "#/components/schemas/CreateProjectBody.name"
+          },
+          "description": {
+            "$ref": "#/components/schemas/CreateProjectBody.description"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateProjectBody.name": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "UpdateProjectBody.description": {
+        "type": "string",
+        "nullable": true,
+        "maxLength": 1000
+      },
+      "UpdateProjectBody": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "$ref": "#/components/schemas/UpdateProjectBody.name"
+          },
+          "description": {
+            "$ref": "#/components/schemas/UpdateProjectBody.description"
+          }
+        }
+      }
+    },
+    "parameters": {}
+  },
+  "paths": {
+    "/api/projects": {
+      "get": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "プロジェクト一覧",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectList"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "プロジェクト作成",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProjectBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/projects/{id}": {
+      "get": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "プロジェクト取得",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "6f1c5c2e-7d1a-4b3e-9c1d-2a4f0b9e8d10"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "プロジェクト部分更新",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "6f1c5c2e-7d1a-4b3e-9c1d-2a4f0b9e8d10"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProjectBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "プロジェクト削除（論理削除）",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "6f1c5c2e-7d1a-4b3e-9c1d-2a4f0b9e8d10"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

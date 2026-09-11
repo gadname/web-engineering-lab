@@ -1,0 +1,16 @@
+# 演習 03 用の開発 DB。統合テストは Testcontainers が別途起動するので、これは手動確認・prisma studio 用
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: lab-03-db
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: taskboard
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d taskboard"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
