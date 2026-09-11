@@ -1,0 +1,29 @@
+# Node
+node_modules/
+dist/
+coverage/
+test-results/
+*.tsbuildinfo
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Prisma の生成物（`prisma generate` で再生成する）
+api/src/infrastructures/shared/clients/databaseClient/prisma/
+
+# Next.js
+web/.next/
+web/next-env.d.ts
+
+# Python
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

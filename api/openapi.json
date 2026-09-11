@@ -1,0 +1,434 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "0.1.0",
+    "title": "taskboard API",
+    "description": "ローカルでは Authorize に userId を入れる（Bearer <userId>）。テナント系は X-Tenant-ID ヘッダ必須。"
+  },
+  "components": {
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "ローカルでは userId をそのままトークンとして渡す"
+      }
+    },
+    "schemas": {
+      "v1GetMeResponseSchema.id": {
+        "type": "string"
+      },
+      "v1GetMeResponseSchema.emailAddress": {
+        "type": "string"
+      },
+      "v1GetMeResponseSchema.name": {
+        "type": "string"
+      },
+      "v1GetMeResponseSchema.memberships": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "membershipId": {
+              "type": "string"
+            },
+            "tenantId": {
+              "type": "string"
+            },
+            "role": {
+              "type": "string",
+              "enum": [
+                "ADMIN",
+                "MEMBER",
+                "GUEST"
+              ]
+            }
+          },
+          "required": [
+            "membershipId",
+            "tenantId",
+            "role"
+          ]
+        }
+      },
+      "v1GetMeResponseSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/v1GetMeResponseSchema.id"
+          },
+          "emailAddress": {
+            "$ref": "#/components/schemas/v1GetMeResponseSchema.emailAddress"
+          },
+          "name": {
+            "$ref": "#/components/schemas/v1GetMeResponseSchema.name"
+          },
+          "memberships": {
+            "$ref": "#/components/schemas/v1GetMeResponseSchema.memberships"
+          }
+        },
+        "required": [
+          "id",
+          "emailAddress",
+          "name",
+          "memberships"
+        ]
+      },
+      "v1ProjectResponseSchema.id": {
+        "type": "string"
+      },
+      "v1ProjectResponseSchema.tenantId": {
+        "type": "string"
+      },
+      "v1ProjectResponseSchema.name": {
+        "type": "string"
+      },
+      "v1ProjectResponseSchema.description": {
+        "type": "string",
+        "nullable": true
+      },
+      "v1ProjectResponseSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/v1ProjectResponseSchema.id"
+          },
+          "tenantId": {
+            "$ref": "#/components/schemas/v1ProjectResponseSchema.tenantId"
+          },
+          "name": {
+            "$ref": "#/components/schemas/v1ProjectResponseSchema.name"
+          },
+          "description": {
+            "$ref": "#/components/schemas/v1ProjectResponseSchema.description"
+          }
+        },
+        "required": [
+          "id",
+          "tenantId",
+          "name",
+          "description"
+        ]
+      },
+      "v1CreateProjectBodySchema.name": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "v1CreateProjectBodySchema.description": {
+        "type": "string",
+        "nullable": true,
+        "maxLength": 1000
+      },
+      "v1CreateProjectBodySchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "$ref": "#/components/schemas/v1CreateProjectBodySchema.name"
+          },
+          "description": {
+            "$ref": "#/components/schemas/v1CreateProjectBodySchema.description"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "v1GetProjectsResponseSchema.projects": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "nullable": true
+            },
+            "createdAt": {
+              "type": "string"
+            },
+            "updatedAt": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "description",
+            "createdAt",
+            "updatedAt"
+          ]
+        }
+      },
+      "v1GetProjectsResponseSchema.pagination": {
+        "type": "object",
+        "properties": {
+          "currentPage": {
+            "type": "number"
+          },
+          "totalPages": {
+            "type": "number"
+          },
+          "totalCount": {
+            "type": "number"
+          },
+          "hasNext": {
+            "type": "boolean"
+          },
+          "hasPrevious": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "currentPage",
+          "totalPages",
+          "totalCount",
+          "hasNext",
+          "hasPrevious"
+        ]
+      },
+      "v1GetProjectsResponseSchema": {
+        "type": "object",
+        "properties": {
+          "projects": {
+            "$ref": "#/components/schemas/v1GetProjectsResponseSchema.projects"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/v1GetProjectsResponseSchema.pagination"
+          }
+        },
+        "required": [
+          "projects",
+          "pagination"
+        ]
+      },
+      "v1GetProjectsQuerySchema.search": {
+        "type": "string"
+      },
+      "v1GetProjectsQuerySchema.page": {
+        "type": "integer",
+        "minimum": 0,
+        "exclusiveMinimum": true
+      },
+      "v1GetProjectsQuerySchema.limit": {
+        "type": "integer",
+        "minimum": 0,
+        "exclusiveMinimum": true,
+        "maximum": 100
+      },
+      "v1ProjectIdParamsSchema.projectId": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "v1UpdateProjectBodySchema.name": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "v1UpdateProjectBodySchema.description": {
+        "type": "string",
+        "nullable": true,
+        "maxLength": 1000
+      },
+      "v1UpdateProjectBodySchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "$ref": "#/components/schemas/v1UpdateProjectBodySchema.name"
+          },
+          "description": {
+            "$ref": "#/components/schemas/v1UpdateProjectBodySchema.description"
+          }
+        }
+      }
+    },
+    "parameters": {}
+  },
+  "paths": {
+    "/api/v1/users/me": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "description": "認証中のユーザー自身と所属テナントの一覧を取得する",
+        "responses": {
+          "200": {
+            "description": "Success Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/v1GetMeResponseSchema"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tenants/projects": {
+      "post": {
+        "tags": [
+          "projects"
+        ],
+        "description": "プロジェクトを作成する",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/v1CreateProjectBodySchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/v1ProjectResponseSchema"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "projects"
+        ],
+        "description": "テナントのプロジェクト一覧を取得する（検索・ページネーション）",
+        "parameters": [
+          {
+            "schema": {
+              "$ref": "#/components/schemas/v1GetProjectsQuerySchema.search"
+            },
+            "required": false,
+            "name": "search",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/v1GetProjectsQuerySchema.page"
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/v1GetProjectsQuerySchema.limit"
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/v1GetProjectsResponseSchema"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tenants/projects/{projectId}": {
+      "get": {
+        "tags": [
+          "projects"
+        ],
+        "description": "プロジェクトを 1 件取得する",
+        "parameters": [
+          {
+            "schema": {
+              "$ref": "#/components/schemas/v1ProjectIdParamsSchema.projectId"
+            },
+            "required": true,
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/v1ProjectResponseSchema"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "projects"
+        ],
+        "description": "プロジェクトを部分更新する",
+        "parameters": [
+          {
+            "schema": {
+              "$ref": "#/components/schemas/v1ProjectIdParamsSchema.projectId"
+            },
+            "required": true,
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/v1UpdateProjectBodySchema"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/v1ProjectResponseSchema"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "projects"
+        ],
+        "description": "プロジェクトを削除する（論理削除）",
+        "parameters": [
+          {
+            "schema": {
+              "$ref": "#/components/schemas/v1ProjectIdParamsSchema.projectId"
+            },
+            "required": true,
+            "name": "projectId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    }
+  }
+}

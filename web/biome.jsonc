@@ -1,0 +1,44 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.3.2/schema.json",
+	"files": {
+		"includes": [
+			"src/**/*.ts",
+			"src/**/*.tsx",
+			"tests/**/*.ts",
+			"tests/**/*.tsx",
+			"*.ts",
+			"*.mjs",
+			// 自動生成される API クライアントの型定義は lint / format の対象外
+			"!src/services/shared/clients/httpClient/core/client.d.ts",
+			"!src/services/shared/clients/httpClient/ai/client.d.ts"
+		]
+	},
+	"formatter": {
+		"enabled": true,
+		"indentStyle": "tab",
+		"indentWidth": 4,
+		"lineWidth": 120
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"suspicious": { "noExplicitAny": "error" },
+			"complexity": { "noForEach": "off" },
+			"correctness": {
+				"noUnusedImports": "error",
+				"noUnusedVariables": "error"
+			},
+			"style": { "useImportType": "error" },
+			"nursery": { "useSortedClasses": "off" }
+		}
+	},
+	"javascript": {
+		"formatter": {
+			"quoteStyle": "double",
+			"semicolons": "always",
+			"trailingCommas": "es5"
+		}
+	},
+	"assist": { "enabled": true, "actions": { "source": { "organizeImports": "on" } } }
+}

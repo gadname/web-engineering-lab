@@ -1,0 +1,8 @@
+export const DATABASE_ERROR_CODES = {
+	TRANSACTION: {
+		FAILED: "SYSTEM.DATABASE.TRANSACTION_FAILED",
+	},
+} as const;
+
+export type DatabaseErrorCode =
+	(typeof DATABASE_ERROR_CODES.TRANSACTION)[keyof typeof DATABASE_ERROR_CODES.TRANSACTION];

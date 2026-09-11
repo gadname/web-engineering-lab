@@ -1,0 +1,24 @@
+{
+	"compilerOptions": {
+		// Node 22 は TC39 Stage 3 デコレータをネイティブ実行できないため、
+		// tsc / esbuild(tsx, vitest) に ES2022 向けのヘルパー展開をさせる。ESNext にすると素通しになり実行時 SyntaxError。
+		"target": "ES2022",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"strict": true,
+		"noUncheckedIndexedAccess": true,
+		"esModuleInterop": true,
+		"isolatedModules": true,
+		"skipLibCheck": true,
+		"resolveJsonModule": true,
+		"noEmit": true,
+		"types": ["node"],
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["./src/*"],
+			"@/tests/*": ["./tests/*"]
+		}
+	},
+	"include": ["src/**/*", "tests/**/*", "scripts/**/*", "prisma/seed.ts", "vitest.config.ts", "vitest.config.integration.ts"],
+	"exclude": ["node_modules", "dist"]
+}
